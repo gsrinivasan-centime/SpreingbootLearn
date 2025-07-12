@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="005-fix-column-types" author="developer">
+        <comment>Fix column types for date_of_birth and role</comment>
+        
+        <!-- Update role data to match enum values before changing column type -->
+        <sql>
+            UPDATE users SET role = 'CUSTOMER' WHERE role = 'USER' OR role IS NULL OR role = '';
+        </sql>
+        
+        <!-- Change date_of_birth from DATETIME to DATE -->
+        <modifyDataType tableName="users" columnName="date_of_birth" newDataType="DATE"/>
+        
+        <!-- Change role from VARCHAR to ENUM -->
+        <sql>
+            ALTER TABLE users MODIFY COLUMN role ENUM('CUSTOMER','ADMIN','MODERATOR') DEFAULT 'CUSTOMER';
+        </sql>
+        
+        <rollback>
+            <!-- Rollback role column type -->
+            <sql>
+                ALTER TABLE users MODIFY COLUMN role VARCHAR(50) DEFAULT 'CUSTOMER';
+            </sql>
+            <!-- Rollback date_of_birth column type -->
+            <modifyDataType tableName="users" columnName="date_of_birth" newDataType="DATETIME"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

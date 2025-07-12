@@ -1,0 +1,169 @@
+services:
+  # Database Services
+  mysql:
+    image: mysql:8.0
+    container_name: bookstore-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: bookstore_books
+      MYSQL_USER: bookstore_user
+      MYSQL_PASSWORD: bookstore_pass
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - bookstore-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: bookstore-redis
+    command: redis-server --requirepass redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis_password", "ping"]
+      timeout: 10s
+      retries: 5
+    networks:
+      - bookstore-network
+
+  # Kafka Message Broker
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: bookstore-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - bookstore-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: bookstore-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      timeout: 10s
+      retries: 5
+    networks:
+      - bookstore-network
+
+  # Microservices
+  book-service:
+    build:
+      context: ./book-service
+      dockerfile: Dockerfile
+    container_name: bookstore-book-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bookstore_books?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: bookstore_user
+      SPRING_DATASOURCE_PASSWORD: bookstore_pass
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_USERNAME: default
+      SPRING_REDIS_PASSWORD: redis_password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/actuator/health"]
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - bookstore-network
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: bookstore-user-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bookstore_users?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: bookstore_user
+      SPRING_DATASOURCE_PASSWORD: bookstore_pass
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_USERNAME: default
+      SPRING_REDIS_PASSWORD: redis_password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/v1/actuator/health"]
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - bookstore-network
+
+  # Management Tools
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: bookstore-redis-commander
+    ports:
+      - "8090:8081"  # Changed port to avoid conflict
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:redis_password
+    depends_on:
+      - redis
+    networks:
+      - bookstore-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: bookstore-kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka
+    networks:
+      - bookstore-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  bookstore-network:
+    driver: bridge

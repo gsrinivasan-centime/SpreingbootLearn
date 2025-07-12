@@ -1,0 +1,19 @@
+singleServerConfig:
+  address: "redis://redis:6379"
+  connectionMinimumIdleSize: 5
+  connectionPoolSize: 10
+  idleConnectionTimeout: 10000
+  connectTimeout: 10000
+  timeout: 3000
+  retryAttempts: 3
+  retryInterval: 1500
+  subscriptionConnectionMinimumIdleSize: 1
+  subscriptionConnectionPoolSize: 5
+
+codec: !<org.redisson.codec.JsonJacksonCodec> {}
+
+threads: 16
+nettyThreads: 32
+
+lockWatchdogTimeout: 30000
+keepPubSubOrder: true

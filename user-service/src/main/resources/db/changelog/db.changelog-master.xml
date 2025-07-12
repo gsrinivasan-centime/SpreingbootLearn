@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <!-- Include all changelog files -->
+    <include file="db/changelog/001-create-users-table.xml"/>
+    <include file="db/changelog/002-add-indexes.xml"/>
+    <include file="db/changelog/003-insert-sample-data.xml"/>
+    <include file="db/changelog/004-add-address-columns.xml"/>
+    <include file="db/changelog/005-fix-column-types.xml"/>
+
+</databaseChangeLog>

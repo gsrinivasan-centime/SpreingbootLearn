@@ -1,0 +1,340 @@
+# Spring Boot Microservices .gitignore
+
+# ===========================
+# Java & Maven
+# ===========================
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ===========================
+# IDE Files
+# ===========================
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+
+# Eclipse
+.project
+.classpath
+.c9/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+.apt_generated
+.apt_generated_test
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ===========================
+# Spring Boot Specific
+# ===========================
+HELP.md
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Application properties with sensitive data
+**/application-local.properties
+**/application-dev.properties
+**/application-prod.properties
+**/application-secrets.properties
+
+# ===========================
+# Logs & Monitoring
+# ===========================
+logs/
+*.log
+*.log.*
+log/
+/logs/
+
+# Spring Boot Actuator dumps
+threaddump
+heapdump
+*.hprof
+
+# ===========================
+# Docker & Container Files
+# ===========================
+# Don't ignore Dockerfiles, but ignore generated content
+.dockerignore.tmp
+docker-compose.override.yml
+docker-compose.local.yml
+
+# ===========================
+# Database
+# ===========================
+# H2 Database files
+*.db
+*.h2.db
+*.mv.db
+*.trace.db
+
+# MySQL dumps
+*.sql.backup
+*.sql.dump
+
+# Database connection files
+**/db.properties
+**/database.properties
+
+# ===========================
+# Security & Secrets
+# ===========================
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Security keys
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.truststore
+
+# AWS credentials
+.aws/
+
+# ===========================
+# Build & Packaging
+# ===========================
+# Gradle
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# STS (Spring Tool Suite)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# ===========================
+# Testing
+# ===========================
+# Test output
+/test-output/
+testng-results.xml
+
+# Coverage reports
+/coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# JaCoCo
+*.exec
+
+# ===========================
+# OS Generated Files
+# ===========================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ===========================
+# Temporary Files
+# ===========================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ===========================
+# Node.js (if using for frontend)
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# ===========================
+# Redis & Cache
+# ===========================
+dump.rdb
+*.rdb
+
+# ===========================
+# Kubernetes
+# ===========================
+# Ignore local kubectl config
+kubeconfig
+kubeconfig.yaml
+*-kubeconfig.yaml
+
+# ===========================
+# Monitoring & APM
+# ===========================
+# Micrometer/Prometheus
+/prometheus/
+/grafana/data/
+
+# NewRelic
+newrelic.yml
+
+# ===========================
+# Documentation
+# ===========================
+# Generated docs
+/javadoc/
+/docs/build/
+
+# ===========================
+# Microservices Specific
+# ===========================
+# Service discovery temp files
+eureka-client-*.log
+
+# Config server local repo
+/config-repo/
+
+# Circuit breaker state
+hystrix-dashboard.log
+
+# ===========================
+# Custom Application Files
+# ===========================
+# Custom log directories
+/book-service/logs/
+/user-service/logs/
+/api-gateway/logs/
+/eureka-server/logs/
+/config-server/logs/
+
+# Local development overrides
+**/application-local.yml
+**/application-local.yaml
+**/application-local.properties
+
+# Local certificates and keys
+**/certs/
+**/ssl/
+
+# Local data directories
+/data/
+/local-data/
+
+# Backup files
+*.backup
+*.bkp
+
+# ===========================
+# Performance & Profiling
+# ===========================
+# JProfiler
+*.jprofile
+
+# YourKit
+*.ykp
+
+# ===========================
+# Version Control
+# ===========================
+# Git
+*.orig
+
+# SVN
+.svn/
+
+# ===========================
+# Package Managers
+# ===========================
+# NPM (if using)
+package-lock.json
+yarn.lock
+
+# ===========================
+# Miscellaneous
+# ===========================
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Virtual machine crash logs
+hs_err_pid*
+replay_pid*
+
+# JUnit test results
+TEST-*.xml
+
+# Spring Boot DevTools restart marker
+.reloadtrigger
+
+# Restart file for dev tools
+.spring-boot-devtools.properties

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="003-insert-sample-data" author="developer">
+        <comment>Insert sample user data for testing</comment>
+        
+        <!-- Sample Users - Note: Phone numbers would be encrypted by the application -->
+        <insert tableName="users">
+            <column name="first_name">John</column>
+            <column name="last_name">Doe</column>
+            <column name="email">john.doe@example.com</column>
+            <column name="phone_number">+1234567890</column>
+            <column name="active" valueBoolean="true"/>
+            <column name="created_at">NOW()</column>
+            <column name="updated_at">NOW()</column>
+        </insert>
+        
+        <insert tableName="users">
+            <column name="first_name">Jane</column>
+            <column name="last_name">Smith</column>
+            <column name="email">jane.smith@example.com</column>
+            <column name="phone_number">+1987654321</column>
+            <column name="active" valueBoolean="true"/>
+            <column name="created_at">NOW()</column>
+            <column name="updated_at">NOW()</column>
+        </insert>
+        
+        <insert tableName="users">
+            <column name="first_name">Bob</column>
+            <column name="last_name">Johnson</column>
+            <column name="email">bob.johnson@example.com</column>
+            <column name="phone_number">+1555123456</column>
+            <column name="active" valueBoolean="true"/>
+            <column name="created_at">NOW()</column>
+            <column name="updated_at">NOW()</column>
+        </insert>
+        
+        <insert tableName="users">
+            <column name="first_name">Alice</column>
+            <column name="last_name">Brown</column>
+            <column name="email">alice.brown@example.com</column>
+            <column name="phone_number">+1444987654</column>
+            <column name="active" valueBoolean="true"/>
+            <column name="created_at">NOW()</column>
+            <column name="updated_at">NOW()</column>
+        </insert>
+        
+        <insert tableName="users">
+            <column name="first_name">Charlie</column>
+            <column name="last_name">Wilson</column>
+            <column name="email">charlie.wilson@example.com</column>
+            <column name="phone_number">+1333456789</column>
+            <column name="active" valueBoolean="false"/>
+            <column name="created_at">NOW()</column>
+            <column name="updated_at">NOW()</column>
+        </insert>
+        
+        <rollback>
+            <delete tableName="users">
+                <where>email IN ('john.doe@example.com', 'jane.smith@example.com', 'bob.johnson@example.com', 'alice.brown@example.com', 'charlie.wilson@example.com')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

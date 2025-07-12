@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="002-add-indexes" author="developer">
+        <comment>Add indexes for better query performance</comment>
+        
+        <!-- Index on email for faster email lookups -->
+        <createIndex tableName="users" indexName="idx_users_email">
+            <column name="email"/>
+        </createIndex>
+        
+        <!-- Index on phone_number for faster phone number lookups -->
+        <createIndex tableName="users" indexName="idx_users_phone_number">
+            <column name="phone_number"/>
+        </createIndex>
+        
+        <!-- Composite index on active status and created_at for filtering active users -->
+        <createIndex tableName="users" indexName="idx_users_active_created">
+            <column name="active"/>
+            <column name="created_at"/>
+        </createIndex>
+        
+        <!-- Index on first_name and last_name for name searches -->
+        <createIndex tableName="users" indexName="idx_users_name">
+            <column name="first_name"/>
+            <column name="last_name"/>
+        </createIndex>
+        
+        <!-- Index on updated_at for sorting and filtering -->
+        <createIndex tableName="users" indexName="idx_users_updated_at">
+            <column name="updated_at"/>
+        </createIndex>
+        
+        <rollback>
+            <dropIndex tableName="users" indexName="idx_users_email"/>
+            <dropIndex tableName="users" indexName="idx_users_phone_number"/>
+            <dropIndex tableName="users" indexName="idx_users_active_created"/>
+            <dropIndex tableName="users" indexName="idx_users_name"/>
+            <dropIndex tableName="users" indexName="idx_users_updated_at"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

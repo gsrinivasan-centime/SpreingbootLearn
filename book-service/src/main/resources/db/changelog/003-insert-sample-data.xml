@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="003-insert-sample-data" author="developer">
+        <insert tableName="books">
+            <column name="title" value="The Great Gatsby"/>
+            <column name="author" value="F. Scott Fitzgerald"/>
+            <column name="isbn" value="9780743273565"/>
+            <column name="description" value="A classic American novel set in the Jazz Age"/>
+            <column name="price" value="12.99"/>
+            <column name="stock_quantity" value="50"/>
+            <column name="category" value="Fiction"/>
+            <column name="publisher" value="Scribner"/>
+            <column name="publication_year" value="1925"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="180"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="To Kill a Mockingbird"/>
+            <column name="author" value="Harper Lee"/>
+            <column name="isbn" value="9780060935467"/>
+            <column name="description" value="A gripping tale of racial injustice and childhood in the American South"/>
+            <column name="price" value="14.99"/>
+            <column name="stock_quantity" value="75"/>
+            <column name="category" value="Fiction"/>
+            <column name="publisher" value="HarperCollins"/>
+            <column name="publication_year" value="1960"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="376"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="1984"/>
+            <column name="author" value="George Orwell"/>
+            <column name="isbn" value="9780451524935"/>
+            <column name="description" value="A dystopian social science fiction novel"/>
+            <column name="price" value="13.99"/>
+            <column name="stock_quantity" value="100"/>
+            <column name="category" value="Science Fiction"/>
+            <column name="publisher" value="Signet Classics"/>
+            <column name="publication_year" value="1949"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="328"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Clean Code"/>
+            <column name="author" value="Robert C. Martin"/>
+            <column name="isbn" value="9780132350884"/>
+            <column name="description" value="A Handbook of Agile Software Craftsmanship"/>
+            <column name="price" value="42.99"/>
+            <column name="stock_quantity" value="30"/>
+            <column name="category" value="Technology"/>
+            <column name="publisher" value="Prentice Hall"/>
+            <column name="publication_year" value="2008"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="464"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Spring Boot in Action"/>
+            <column name="author" value="Craig Walls"/>
+            <column name="isbn" value="9781617292545"/>
+            <column name="description" value="A comprehensive guide to Spring Boot development"/>
+            <column name="price" value="49.99"/>
+            <column name="stock_quantity" value="25"/>
+            <column name="category" value="Technology"/>
+            <column name="publisher" value="Manning Publications"/>
+            <column name="publication_year" value="2015"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="424"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="books">
+                <where>isbn IN ('9780743273565', '9780060935467', '9780451524935', '9780132350884', '9781617292545')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
