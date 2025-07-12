@@ -2,6 +2,21 @@
 
 This project demonstrates a complete microservices architecture for an online bookstore application, designed to help you prepare for Spring Boot interviews.
 
+## 🚀 Quick Start
+
+**New to this project? Start here:**
+
+### ⚡ 60-Second Setup
+```bash
+git clone <your-repo-url>
+cd SpreingbootLearn
+./setup-menu.sh
+```
+
+**Or see**: [**GETTING_STARTED.md**](GETTING_STARTED.md) | [**QUICK_SETUP.md**](QUICK_SETUP.md)
+
+---
+
 ## Architecture Overview
 
 ```
@@ -51,31 +66,34 @@ This project demonstrates a complete microservices architecture for an online bo
 
 ## Deployment Options
 
-### 1. Traditional JVM Deployment
+### 🐳 1. Complete Docker Deployment (Recommended for Quick Start)
 ```bash
-./start-microservices.sh
+./docker-setup.sh
 ```
-- Runs services directly as JAR files
-- Requires local MySQL, Redis, Kafka setup
-- Good for development and testing
+- **Best for**: First-time setup, demos, testing complete stack
+- **Includes**: All services containerized (infrastructure + microservices)
+- **Pros**: One-command setup, isolated environments, production-like
+- **Cons**: Longer rebuild times during development
 
-### 2. Docker Compose (Recommended for Development)
+### 🛠️ 2. Hybrid Development Setup
 ```bash
-./start-containers.sh
+./quick-start.sh                    # Start infrastructure
+cd book-service && mvn spring-boot:run    # Run locally
+cd user-service && mvn spring-boot:run    # Run locally
 ```
-- Containerized microservices with infrastructure
-- Isolated environments
-- Easy setup and teardown
-- Includes management tools (Redis Commander, Kafka UI)
+- **Best for**: Active development, debugging, faster code changes
+- **Includes**: Docker infrastructure + local microservices
+- **Pros**: Fast development cycle, easy debugging, hot reload
+- **Cons**: Requires Java/Maven setup
 
-### 3. Kubernetes (Production Ready)
+### ☸️ 3. Kubernetes Deployment (Production Ready)
 ```bash
 ./deploy-kubernetes.sh
 ```
-- Pod-based deployment with both services in same pod
-- Service discovery and load balancing
-- Auto-scaling and rolling updates
-- Production-grade orchestration
+- **Best for**: Production environments, scaling, orchestration
+- **Includes**: Pod-based deployment with service discovery
+- **Pros**: Auto-scaling, rolling updates, health management
+- **Cons**: More complex setup, requires Kubernetes cluster
 
 ## Why Microservices in Containers/Pods Work
 
@@ -113,28 +131,52 @@ See [docs/11-Containerization.md](docs/11-Containerization.md) for detailed expl
 8. [Design Patterns](docs/08-DesignPatterns.md)
 9. [Testing Strategies](docs/09-Testing.md)
 
-## Quick Start
+## Quick Setup Options
 
-1. Start infrastructure services:
-   ```bash
-   docker-compose up -d mysql redis kafka zookeeper
-   ```
+### 🚀 Option 1: Complete Docker Setup (Recommended)
+One-command setup that builds and runs everything:
+```bash
+# Clone and setup
+git clone <your-repo-url>
+cd SpreingbootLearn
 
-2. Run Book Service:
-   ```bash
-   cd book-service
-   mvn spring-boot:run
-   ```
+# Run complete setup
+./docker-setup.sh
+```
 
-3. Run User Service:
-   ```bash
-   cd user-service
-   mvn spring-boot:run
-   ```
+This will:
+- Build Docker images for both microservices
+- Start all infrastructure (MySQL, Redis, Kafka)
+- Deploy both microservices
+- Create Kafka topics
+- Set up database with Liquibase migrations
+- Show all service URLs and status
 
-4. Access Swagger UI:
-   - Book Service: http://localhost:8081/swagger-ui.html
-   - User Service: http://localhost:8082/swagger-ui.html
+### 🛠️ Option 2: Infrastructure + Local Development
+Start infrastructure with Docker, run microservices locally:
+```bash
+# Start infrastructure only
+./quick-start.sh
+
+# In separate terminals:
+cd book-service && mvn spring-boot:run
+cd user-service && mvn spring-boot:run
+```
+
+### 📊 Option 3: Check Status
+```bash
+./status-check.sh        # Complete status report
+./status-check.sh health # Health checks only
+```
+
+## Service URLs (After Setup)
+
+- **📚 Book Service API**: http://localhost:8081/api/v1
+- **👥 User Service API**: http://localhost:8082/api/v1
+- **📖 Book Service Swagger**: http://localhost:8081/api/v1/swagger-ui/index.html
+- **📖 User Service Swagger**: http://localhost:8082/api/v1/swagger-ui/index.html
+- **📊 Kafka UI**: http://localhost:8080
+- **🗄️ Redis Commander**: http://localhost:8090
 
 ## Interview Ready Features
 
