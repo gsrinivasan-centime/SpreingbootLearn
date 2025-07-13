@@ -8,6 +8,12 @@
     <changeSet id="001-create-users-table" author="developer">
         <comment>Create users table with encrypted phone numbers</comment>
         
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="users"/>
+            </not>
+        </preConditions>
+        
         <createTable tableName="users">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>

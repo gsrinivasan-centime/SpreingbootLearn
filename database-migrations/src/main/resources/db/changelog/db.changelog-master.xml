@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Books Service Migrations -->
+    <include file="classpath:db/changelog/books/001-create-books-table.xml"/>
+    <include file="classpath:db/changelog/books/002-add-books-indexes.xml"/>
+    <include file="classpath:db/changelog/books/003-insert-books-sample-data.xml"/>
+    
+    <!-- Users Service Migrations -->
+    <include file="classpath:db/changelog/users/001-create-users-table.xml"/>
+    <include file="classpath:db/changelog/users/002-add-users-indexes.xml"/>
+    
+    <!-- Future migrations can be added here -->
+
+</databaseChangeLog>

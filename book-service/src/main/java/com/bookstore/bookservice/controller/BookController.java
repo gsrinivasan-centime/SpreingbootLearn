@@ -26,7 +26,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/books")
+@RequestMapping("/api/v1/books")
 @Tag(name = "Book Management", description = "APIs for managing books in the bookstore")
 @CrossOrigin(origins = "*")
 public class BookController {

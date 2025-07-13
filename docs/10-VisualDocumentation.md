@@ -1,23 +1,913 @@
-# Visual Documentation for Online Bookstore
+# Visual Architecture Documentation
 
-This document contains flowcharts, UML diagrams, and mind maps for the Online Bookstore application.
-
-## Table of Contents
-1. [System Architecture Diagram](#system-architecture-diagram)
-2. [Database ER Diagrams](#database-er-diagrams)
-3. [API Flow Diagrams](#api-flow-diagrams)
-4. [Microservices Communication Flow](#microservices-communication-flow)
-5. [Kafka Event Flow](#kafka-event-flow)
-6. [Redis Caching Strategy](#redis-caching-strategy)
-7. [Mind Maps](#mind-maps)
-
-## System Architecture Diagram
+## 1. System Architecture Overview
 
 ```mermaid
 graph TB
     subgraph "Client Layer"
-        A[Web Browser/Mobile App]
-        B[API Gateway]
+        WEB[Web Client/Postman]
+        MOB[Mobile App]
+        API_GW[API Gateway/Load Balancer]
+    end
+    
+    subgraph "Microservices Layer"
+        subgraph "Book Service (Port 8081)"
+            BS_CTRL[BookController]
+            BS_SVC[BookService]
+            BS_REPO[BookRepository]
+        end
+        
+        subgraph "User Service (Port 8082)"
+            US_CTRL[UserController]
+            US_SVC[UserService]
+            US_REPO[UserRepository]
+        end
+    end
+    
+    subgraph "Infrastructure Layer"
+        subgraph "Databases"
+            MYSQL[(MySQL 8.0)]
+            REDIS[(Redis Cache)]
+        end
+        
+        subgraph "Message Broker"
+            ZK[Zookeeper]
+            KAFKA[Kafka]
+        end
+        
+        subgraph "Monitoring & Admin"
+            KAFKA_UI[Kafka UI<br/>Port 8080]
+            REDIS_CMD[Redis Commander<br/>Port 8090]
+        end
+    end
+    
+    subgraph "Container Platform"
+        DOCKER[Docker<br/>Docker Compose]
+    end
+    
+    %% Client connections
+    WEB --> API_GW
+    MOB --> API_GW
+    API_GW --> BS_CTRL
+    API_GW --> US_CTRL
+    
+    %% Service layer connections
+    BS_CTRL --> BS_SVC
+    BS_SVC --> BS_REPO
+    US_CTRL --> US_SVC
+    US_SVC --> US_REPO
+    
+    %% Database connections
+    BS_REPO --> MYSQL
+    US_REPO --> MYSQL
+    BS_SVC --> REDIS
+    US_SVC --> REDIS
+    
+    %% Messaging connections
+    BS_SVC --> KAFKA
+    US_SVC --> KAFKA
+    KAFKA --> ZK
+    
+    %% Container orchestration
+    DOCKER -.-> BS_CTRL
+    DOCKER -.-> US_CTRL
+    DOCKER -.-> MYSQL
+    DOCKER -.-> REDIS
+    DOCKER -.-> KAFKA
+    DOCKER -.-> ZK
+    
+    %% Admin interfaces
+    KAFKA_UI --> KAFKA
+    REDIS_CMD --> REDIS
+    
+    style BS_CTRL fill:#e1f5fe
+    style US_CTRL fill:#e8f5e8
+    style MYSQL fill:#fff3e0
+    style REDIS fill:#fce4ec
+    style KAFKA fill:#f3e5f5
+```
+
+## 2. Data Flow Architecture
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant BookService
+    participant UserService
+    participant MySQL
+    participant Redis
+    participant Kafka
+    
+    Note over Client,Kafka: User Registration Flow
+    Client->>UserService: POST /api/v1/users
+    UserService->>MySQL: Save user data
+    UserService->>Redis: Cache user session
+    UserService->>Kafka: Publish UserCreated event
+    UserService-->>Client: Return user details
+    
+    Note over Client,Kafka: Book Creation Flow
+    Client->>BookService: POST /api/v1/books
+    BookService->>MySQL: Save book data
+    BookService->>Redis: Cache book data
+    BookService->>Kafka: Publish BookCreated event
+    BookService-->>Client: Return book details
+    
+    Note over Client,Kafka: Book Search Flow (Cached)
+    Client->>BookService: GET /api/v1/books/{id}
+    BookService->>Redis: Check cache
+    alt Cache Hit
+        Redis-->>BookService: Return cached data
+        BookService-->>Client: Return book details
+    else Cache Miss
+        BookService->>MySQL: Query database
+        MySQL-->>BookService: Return book data
+        BookService->>Redis: Update cache
+        BookService-->>Client: Return book details
+    end
+```
+
+## 3. Container Architecture
+
+```mermaid
+graph TB
+    subgraph "Docker Host"
+        subgraph "Application Containers"
+            BS_CONTAINER[book-service:latest<br/>Port 8081<br/>Java 17 + Spring Boot]
+            US_CONTAINER[user-service:latest<br/>Port 8082<br/>Java 17 + Spring Boot]
+        end
+        
+        subgraph "Infrastructure Containers"
+            MYSQL_CONTAINER[mysql:8.0<br/>Port 3308<br/>Database Storage]
+            REDIS_CONTAINER[redis:7-alpine<br/>Port 6379<br/>Caching Layer]
+            KAFKA_CONTAINER[confluentinc/cp-kafka:7.4.0<br/>Port 9092<br/>Message Broker]
+            ZK_CONTAINER[confluentinc/cp-zookeeper:7.4.0<br/>Port 2181<br/>Kafka Coordination]
+        end
+        
+        subgraph "Management Containers"
+            KAFKA_UI_CONTAINER[provectuslabs/kafka-ui<br/>Port 8080<br/>Kafka Management]
+            REDIS_UI_CONTAINER[rediscommander/redis-commander<br/>Port 8090<br/>Redis Management]
+        end
+        
+        subgraph "Volumes"
+            MYSQL_VOL[mysql_data]
+            REDIS_VOL[redis_data]
+        end
+        
+        subgraph "Networks"
+            NETWORK[bookstore-network<br/>Bridge Network]
+        end
+    end
+    
+    %% Container connections
+    BS_CONTAINER -.-> NETWORK
+    US_CONTAINER -.-> NETWORK
+    MYSQL_CONTAINER -.-> NETWORK
+    REDIS_CONTAINER -.-> NETWORK
+    KAFKA_CONTAINER -.-> NETWORK
+    ZK_CONTAINER -.-> NETWORK
+    KAFKA_UI_CONTAINER -.-> NETWORK
+    REDIS_UI_CONTAINER -.-> NETWORK
+    
+    %% Volume mounts
+    MYSQL_CONTAINER --> MYSQL_VOL
+    REDIS_CONTAINER --> REDIS_VOL
+    
+    style BS_CONTAINER fill:#e1f5fe
+    style US_CONTAINER fill:#e8f5e8
+    style MYSQL_CONTAINER fill:#fff3e0
+    style REDIS_CONTAINER fill:#fce4ec
+    style KAFKA_CONTAINER fill:#f3e5f5
+    style NETWORK fill:#f5f5f5
+```
+
+## 4. Book Service - UML Class Diagram
+
+```mermaid
+classDiagram
+    class BookServiceApplication {
+        +main(String[] args)
+    }
+    
+    class BookController {
+        -BookService bookService
+        +getAllBooks(page, size) ResponseEntity~List~BookDto~~
+        +getBookById(id) ResponseEntity~BookDto~
+        +createBook(request) ResponseEntity~BookDto~
+        +updateBook(id, request) ResponseEntity~BookDto~
+        +deleteBook(id) ResponseEntity~Void~
+        +searchBooks(criteria) ResponseEntity~List~BookDto~~
+        +getBooksInBatch(ids) ResponseEntity~List~BookDto~~
+    }
+    
+    class BookService {
+        <<interface>>
+        +getAllBooks(page, size) List~BookDto~
+        +getBookById(id) BookDto
+        +createBook(request) BookDto
+        +updateBook(id, request) BookDto
+        +deleteBook(id) void
+        +searchBooks(criteria) List~BookDto~
+        +getBooksInBatch(ids) List~BookDto~
+    }
+    
+    class BookServiceImpl {
+        -BookRepository bookRepository
+        -RedisTemplate redisTemplate
+        -KafkaProducerService kafkaProducerService
+        -IdempotencyService idempotencyService
+        +getAllBooks(page, size) List~BookDto~
+        +getBookById(id) BookDto
+        +createBook(request) BookDto
+        +updateBook(id, request) BookDto
+        +deleteBook(id) void
+        -validateBookData(book) void
+        -publishBookEvent(event) void
+    }
+    
+    class BookRepository {
+        <<interface>>
+        +findById(id) Optional~Book~
+        +findAll(pageable) Page~Book~
+        +findByTitleContainingIgnoreCase(title) List~Book~
+        +findByAuthorContainingIgnoreCase(author) List~Book~
+        +findByCategoryAndAvailableTrue(category) List~Book~
+        +findByIsbn(isbn) Optional~Book~
+        +updateStockById(id, stock) int
+    }
+    
+    class Book {
+        -Long id
+        -String title
+        -String author
+        -String isbn
+        -String category
+        -BigDecimal price
+        -Integer stock
+        -String description
+        -Boolean available
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        +getId() Long
+        +setId(Long) void
+        +getTitle() String
+        +setTitle(String) void
+        +equals(Object) boolean
+        +hashCode() int
+        +toString() String
+    }
+    
+    class BookDto {
+        -Long id
+        -String title
+        -String author
+        -String isbn
+        -String category
+        -BigDecimal price
+        -Integer stock
+        -String description
+        -Boolean available
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+    }
+    
+    class CreateBookRequestDto {
+        -String title
+        -String author
+        -String isbn
+        -String category
+        -BigDecimal price
+        -Integer stock
+        -String description
+    }
+    
+    class UpdateBookRequestDto {
+        -String title
+        -String author
+        -String category
+        -BigDecimal price
+        -Integer stock
+        -String description
+        -Boolean available
+    }
+    
+    class BookEvent {
+        -String eventType
+        -Long bookId
+        -BookDto bookData
+        -LocalDateTime timestamp
+        -String correlationId
+    }
+    
+    class KafkaProducerService {
+        -KafkaTemplate kafkaTemplate
+        +publishBookEvent(event) void
+        +publishBookCreated(bookId) void
+        +publishBookUpdated(bookId) void
+        +publishBookDeleted(bookId) void
+    }
+    
+    class IdempotencyService {
+        -RedisTemplate redisTemplate
+        +isOperationProcessed(key) boolean
+        +markOperationAsProcessed(key) void
+        +generateIdempotencyKey(operation, params) String
+    }
+    
+    class GlobalExceptionHandler {
+        +handleBookNotFound(ex) ResponseEntity~ErrorResponse~
+        +handleDuplicateIsbn(ex) ResponseEntity~ErrorResponse~
+        +handleValidationException(ex) ResponseEntity~ErrorResponse~
+        +handleGenericException(ex) ResponseEntity~ErrorResponse~
+    }
+    
+    class RedisConfig {
+        +redisTemplate() RedisTemplate
+        +cacheManager() CacheManager
+    }
+    
+    class KafkaConfig {
+        +kafkaTemplate() KafkaTemplate
+        +producerFactory() ProducerFactory
+    }
+    
+    %% Relationships
+    BookController --> BookService : uses
+    BookServiceImpl ..|> BookService : implements
+    BookServiceImpl --> BookRepository : uses
+    BookServiceImpl --> KafkaProducerService : uses
+    BookServiceImpl --> IdempotencyService : uses
+    BookRepository --> Book : manages
+    BookServiceImpl --> BookDto : creates
+    BookController --> CreateBookRequestDto : receives
+    BookController --> UpdateBookRequestDto : receives
+    BookController --> BookDto : returns
+    KafkaProducerService --> BookEvent : publishes
+    BookServiceImpl --> Book : works with
+    
+    %% Styling
+    class BookController {
+        <<@RestController>>
+    }
+    class BookServiceImpl {
+        <<@Service>>
+    }
+    class BookRepository {
+        <<@Repository>>
+    }
+    class Book {
+        <<@Entity>>
+    }
+    class RedisConfig {
+        <<@Configuration>>
+    }
+    class KafkaConfig {
+        <<@Configuration>>
+    }
+```
+
+## 5. User Service - UML Class Diagram
+
+```mermaid
+classDiagram
+    class UserServiceApplication {
+        +main(String[] args)
+    }
+    
+    class UserController {
+        -UserService userService
+        +getAllUsers(page, size) ResponseEntity~List~UserDto~~
+        +getUserById(id) ResponseEntity~UserDto~
+        +createUser(request) ResponseEntity~UserDto~
+        +updateUser(id, request) ResponseEntity~UserDto~
+        +deleteUser(id) ResponseEntity~Void~
+        +searchUsers(criteria) ResponseEntity~List~UserDto~~
+        +getUsersInBatch(ids) ResponseEntity~List~UserDto~~
+    }
+    
+    class UserService {
+        <<interface>>
+        +getAllUsers(page, size) List~UserDto~
+        +getUserById(id) UserDto
+        +createUser(request) UserDto
+        +updateUser(id, request) UserDto
+        +deleteUser(id) void
+        +searchUsers(criteria) List~UserDto~
+        +getUsersInBatch(ids) List~UserDto~
+    }
+    
+    class UserServiceImpl {
+        -UserRepository userRepository
+        -RedisTemplate redisTemplate
+        -KafkaProducerService kafkaProducerService
+        -IdempotencyService idempotencyService
+        -PasswordEncoder passwordEncoder
+        +getAllUsers(page, size) List~UserDto~
+        +getUserById(id) UserDto
+        +createUser(request) UserDto
+        +updateUser(id, request) UserDto
+        +deleteUser(id) void
+        -validateUserData(user) void
+        -encryptSensitiveData(user) void
+        -publishUserEvent(event) void
+    }
+    
+    class UserRepository {
+        <<interface>>
+        +findById(id) Optional~User~
+        +findAll(pageable) Page~User~
+        +findByEmail(email) Optional~User~
+        +findByUsername(username) Optional~User~
+        +findByPhoneNumber(phone) Optional~User~
+        +findByActiveTrue() List~User~
+        +updateLastLoginById(id, timestamp) int
+    }
+    
+    class User {
+        -Long id
+        -String username
+        -String email
+        -String encryptedPassword
+        -String firstName
+        -String lastName
+        -String phoneNumber
+        -LocalDate dateOfBirth
+        -String address
+        -String city
+        -String country
+        -String postalCode
+        -Boolean active
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        -LocalDateTime lastLogin
+        +getId() Long
+        +setId(Long) void
+        +getUsername() String
+        +setUsername(String) void
+        +equals(Object) boolean
+        +hashCode() int
+        +toString() String
+    }
+    
+    class UserDto {
+        -Long id
+        -String username
+        -String email
+        -String firstName
+        -String lastName
+        -String phoneNumber
+        -LocalDate dateOfBirth
+        -String address
+        -String city
+        -String country
+        -String postalCode
+        -Boolean active
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        -LocalDateTime lastLogin
+    }
+    
+    class CreateUserRequestDto {
+        -String username
+        -String email
+        -String password
+        -String firstName
+        -String lastName
+        -String phoneNumber
+        -LocalDate dateOfBirth
+        -String address
+        -String city
+        -String country
+        -String postalCode
+    }
+    
+    class UpdateUserRequestDto {
+        -String email
+        -String firstName
+        -String lastName
+        -String phoneNumber
+        -LocalDate dateOfBirth
+        -String address
+        -String city
+        -String country
+        -String postalCode
+        -Boolean active
+    }
+    
+    class UserEvent {
+        -String eventType
+        -Long userId
+        -UserDto userData
+        -LocalDateTime timestamp
+        -String correlationId
+    }
+    
+    class UserMapper {
+        +toDto(user) UserDto
+        +toEntity(dto) User
+        +toEntity(request) User
+        +updateEntityFromDto(dto, entity) void
+    }
+    
+    class KafkaProducerService {
+        -KafkaTemplate kafkaTemplate
+        +publishUserEvent(event) void
+        +publishUserCreated(userId) void
+        +publishUserUpdated(userId) void
+        +publishUserDeleted(userId) void
+    }
+    
+    class IdempotencyService {
+        -RedisTemplate redisTemplate
+        +isOperationProcessed(key) boolean
+        +markOperationAsProcessed(key) void
+        +generateIdempotencyKey(operation, params) String
+    }
+    
+    class PhoneNumberConverter {
+        +convertToDatabaseColumn(phone) String
+        +convertToEntityAttribute(dbData) String
+        -encryptPhoneNumber(phone) String
+        -decryptPhoneNumber(encrypted) String
+    }
+    
+    class GlobalExceptionHandler {
+        +handleUserNotFound(ex) ResponseEntity~ErrorResponse~
+        +handleDuplicateEmail(ex) ResponseEntity~ErrorResponse~
+        +handleDuplicatePhone(ex) ResponseEntity~ErrorResponse~
+        +handleValidationException(ex) ResponseEntity~ErrorResponse~
+        +handleGenericException(ex) ResponseEntity~ErrorResponse~
+    }
+    
+    class EncryptionConfig {
+        +passwordEncoder() PasswordEncoder
+        +aesUtil() AESUtil
+    }
+    
+    class RedisConfig {
+        +redisTemplate() RedisTemplate
+        +cacheManager() CacheManager
+    }
+    
+    class KafkaConfig {
+        +kafkaTemplate() KafkaTemplate
+        +producerFactory() ProducerFactory
+    }
+    
+    %% Relationships
+    UserController --> UserService : uses
+    UserServiceImpl ..|> UserService : implements
+    UserServiceImpl --> UserRepository : uses
+    UserServiceImpl --> KafkaProducerService : uses
+    UserServiceImpl --> IdempotencyService : uses
+    UserServiceImpl --> UserMapper : uses
+    UserRepository --> User : manages
+    UserServiceImpl --> UserDto : creates
+    UserController --> CreateUserRequestDto : receives
+    UserController --> UpdateUserRequestDto : receives
+    UserController --> UserDto : returns
+    KafkaProducerService --> UserEvent : publishes
+    UserServiceImpl --> User : works with
+    User --> PhoneNumberConverter : uses
+    UserMapper --> User : maps
+    UserMapper --> UserDto : maps
+    
+    %% Styling
+    class UserController {
+        <<@RestController>>
+    }
+    class UserServiceImpl {
+        <<@Service>>
+    }
+    class UserRepository {
+        <<@Repository>>
+    }
+    class User {
+        <<@Entity>>
+    }
+    class PhoneNumberConverter {
+        <<@Converter>>
+    }
+    class EncryptionConfig {
+        <<@Configuration>>
+    }
+    class RedisConfig {
+        <<@Configuration>>
+    }
+    class KafkaConfig {
+        <<@Configuration>>
+    }
+```
+
+## 6. Database Schema Diagram
+
+```mermaid
+erDiagram
+    BOOKS {
+        bigint id PK "AUTO_INCREMENT"
+        varchar(255) title "NOT NULL"
+        varchar(255) author "NOT NULL"
+        varchar(20) isbn "UNIQUE NOT NULL"
+        varchar(100) category
+        decimal(10,2) price "NOT NULL"
+        int stock "DEFAULT 0"
+        text description
+        boolean available "DEFAULT true"
+        timestamp created_at "DEFAULT CURRENT_TIMESTAMP"
+        timestamp updated_at "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    }
+    
+    USERS {
+        bigint id PK "AUTO_INCREMENT"
+        varchar(50) username "UNIQUE NOT NULL"
+        varchar(255) email "UNIQUE NOT NULL"
+        varchar(255) encrypted_password "NOT NULL"
+        varchar(100) first_name
+        varchar(100) last_name
+        varchar(20) phone_number "UNIQUE"
+        date date_of_birth
+        text address
+        varchar(100) city
+        varchar(100) country
+        varchar(20) postal_code
+        boolean active "DEFAULT true"
+        timestamp created_at "DEFAULT CURRENT_TIMESTAMP"
+        timestamp updated_at "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        timestamp last_login
+    }
+    
+    %% Indexes
+    BOOKS }|--|| IDX_BOOK_ISBN : "UNIQUE INDEX"
+    BOOKS }|--|| IDX_BOOK_TITLE : "INDEX"
+    BOOKS }|--|| IDX_BOOK_AUTHOR : "INDEX"
+    BOOKS }|--|| IDX_BOOK_CATEGORY : "INDEX"
+    
+    USERS }|--|| IDX_USER_EMAIL : "UNIQUE INDEX"
+    USERS }|--|| IDX_USER_USERNAME : "UNIQUE INDEX"
+    USERS }|--|| IDX_USER_ACTIVE : "INDEX"
+    USERS }|--|| IDX_USER_CREATED_AT : "INDEX"
+```
+
+## 7. Kafka Event Flow
+
+```mermaid
+graph LR
+    subgraph "Event Producers"
+        BS[Book Service]
+        US[User Service]
+    end
+    
+    subgraph "Kafka Topics"
+        BT[book-events]
+        UT[user-events]
+    end
+    
+    subgraph "Event Consumers"
+        ES[Email Service]
+        NS[Notification Service]
+        AS[Analytics Service]
+        RS[Recommendation Service]
+    end
+    
+    %% Event publishing
+    BS -->|BookCreated<br/>BookUpdated<br/>BookDeleted| BT
+    US -->|UserCreated<br/>UserUpdated<br/>UserDeleted| UT
+    
+    %% Event consumption
+    BT --> ES
+    BT --> NS
+    BT --> AS
+    BT --> RS
+    
+    UT --> ES
+    UT --> NS
+    UT --> AS
+    UT --> RS
+    
+    style BS fill:#e1f5fe
+    style US fill:#e8f5e8
+    style BT fill:#f3e5f5
+    style UT fill:#f3e5f5
+    style ES fill:#fff3e0
+    style NS fill:#fff3e0
+    style AS fill:#fff3e0
+    style RS fill:#fff3e0
+```
+
+## 8. Redis Caching Strategy
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        BS[Book Service]
+        US[User Service]
+    end
+    
+    subgraph "Redis Cache"
+        subgraph "Cache Namespaces"
+            BC[book:*<br/>TTL: 1 hour]
+            UC[user:*<br/>TTL: 30 minutes]
+            SC[session:*<br/>TTL: 24 hours]
+            IC[idempotency:*<br/>TTL: 5 minutes]
+        end
+    end
+    
+    subgraph "Cache Patterns"
+        CT[Cache-Through]
+        CA[Cache-Aside]
+        WB[Write-Behind]
+    end
+    
+    %% Service to cache connections
+    BS --> BC
+    BS --> IC
+    US --> UC
+    US --> SC
+    US --> IC
+    
+    %% Cache patterns
+    BC -.-> CT
+    UC -.-> CA
+    SC -.-> WB
+    IC -.-> CA
+    
+    style BS fill:#e1f5fe
+    style US fill:#e8f5e8
+    style BC fill:#fce4ec
+    style UC fill:#fce4ec
+    style SC fill:#fce4ec
+    style IC fill:#fce4ec
+```
+
+## 9. Deployment Flow
+
+```mermaid
+graph TB
+    START([Start Deployment])
+    
+    subgraph "Build Phase"
+        B1[Build Book Service JAR]
+        B2[Build User Service JAR]
+        B3[Create Docker Images]
+    end
+    
+    subgraph "Infrastructure Phase"
+        I1[Start MySQL Container]
+        I2[Start Redis Container]
+        I3[Start Zookeeper Container]
+        I4[Start Kafka Container]
+        I5[Start Management UIs]
+        WAIT[Wait for Health Checks]
+    end
+    
+    subgraph "Application Phase"
+        A1[Deploy Book Service]
+        A2[Deploy User Service]
+        A3[Run Health Checks]
+    end
+    
+    subgraph "Verification Phase"
+        V1[Test API Endpoints]
+        V2[Verify Database Connectivity]
+        V3[Check Cache Functionality]
+        V4[Validate Message Publishing]
+    end
+    
+    END([Deployment Complete])
+    
+    START --> B1
+    B1 --> B2
+    B2 --> B3
+    B3 --> I1
+    I1 --> I2
+    I2 --> I3
+    I3 --> I4
+    I4 --> I5
+    I5 --> WAIT
+    WAIT --> A1
+    A1 --> A2
+    A2 --> A3
+    A3 --> V1
+    V1 --> V2
+    V2 --> V3
+    V3 --> V4
+    V4 --> END
+    
+    style START fill:#c8e6c9
+    style END fill:#c8e6c9
+    style B1 fill:#e1f5fe
+    style B2 fill:#e8f5e8
+    style I1 fill:#fff3e0
+    style I2 fill:#fce4ec
+    style I3 fill:#f3e5f5
+    style I4 fill:#f3e5f5
+```
+
+## 10. API Endpoint Overview
+
+### Book Service Endpoints (Port 8081)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/books` | Get all books (paginated) |
+| GET | `/api/v1/books/{id}` | Get book by ID |
+| POST | `/api/v1/books` | Create new book |
+| PUT | `/api/v1/books/{id}` | Update book |
+| DELETE | `/api/v1/books/{id}` | Delete book |
+| GET | `/api/v1/books/search` | Search books |
+| POST | `/api/v1/books/batch` | Get books in batch |
+| GET | `/api/v1/actuator/health` | Health check |
+| GET | `/api/v1/swagger-ui.html` | API documentation |
+
+### User Service Endpoints (Port 8082)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/users` | Get all users (paginated) |
+| GET | `/api/v1/users/{id}` | Get user by ID |
+| POST | `/api/v1/users` | Create new user |
+| PUT | `/api/v1/users/{id}` | Update user |
+| DELETE | `/api/v1/users/{id}` | Delete user |
+| GET | `/api/v1/users/search` | Search users |
+| POST | `/api/v1/users/batch` | Get users in batch |
+| GET | `/api/v1/actuator/health` | Health check |
+| GET | `/api/v1/swagger-ui.html` | API documentation |
+
+## 11. Technology Stack Summary
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        JAVA[Java 17]
+        SB[Spring Boot 3.2]
+        SW[Spring Web]
+        SD[Spring Data JPA]
+        SC[Spring Cache]
+        SK[Spring Kafka]
+    end
+    
+    subgraph "Database Layer"
+        MYSQL[MySQL 8.0]
+        REDIS[Redis 7]
+        HIB[Hibernate ORM]
+    end
+    
+    subgraph "Messaging Layer"
+        KAFKA[Apache Kafka 7.4]
+        ZK[Zookeeper]
+    end
+    
+    subgraph "Container Layer"
+        DOCKER[Docker]
+        DC[Docker Compose]
+    end
+    
+    subgraph "Documentation & Testing"
+        SWAGGER[OpenAPI/Swagger]
+        JUNIT[JUnit 5]
+        MOCK[Mockito]
+        TEST[TestContainers]
+    end
+    
+    subgraph "Monitoring & Management"
+        ACT[Spring Actuator]
+        KUI[Kafka UI]
+        RC[Redis Commander]
+    end
+    
+    %% Dependencies
+    SB --> JAVA
+    SW --> SB
+    SD --> SB
+    SC --> SB
+    SK --> SB
+    HIB --> SD
+    HIB --> MYSQL
+    SC --> REDIS
+    SK --> KAFKA
+    KAFKA --> ZK
+    
+    style JAVA fill:#f4511e
+    style SB fill:#6db33f
+    style MYSQL fill:#4479a1
+    style REDIS fill:#dc382d
+    style KAFKA fill:#231f20
+    style DOCKER fill:#2496ed
+```
+
+This comprehensive visual documentation provides:
+
+1. **System Architecture Overview** - Complete microservices architecture
+2. **Data Flow Architecture** - Sequence diagrams showing request flows
+3. **Container Architecture** - Docker container relationships
+4. **UML Class Diagrams** - Detailed class structures for both services
+5. **Database Schema** - Entity relationship diagrams
+6. **Kafka Event Flow** - Message broker event patterns
+7. **Redis Caching Strategy** - Caching patterns and TTL strategies
+8. **Deployment Flow** - Step-by-step deployment process
+9. **API Endpoint Overview** - Complete REST API reference
+10. **Technology Stack Summary** - All technologies and their relationships
+
+These diagrams will help you understand the complete architecture and explain the microservices pattern effectively for learning and interviews.
     end
     
     subgraph "Microservices Layer"

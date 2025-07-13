@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,10 +18,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "User data transfer object")
-public class UserDto {
+public class UserDto implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
     
     @Schema(description = "User ID", example = "1")
     private Long id;
+    
+    @Schema(description = "User's username", example = "john_doe")
+    private String username;
     
     @NotBlank(message = "First name is required")
     @Schema(description = "User first name", example = "John")

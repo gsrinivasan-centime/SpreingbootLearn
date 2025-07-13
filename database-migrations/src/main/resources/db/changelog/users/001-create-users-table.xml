@@ -5,43 +5,45 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="001-create-books-table" author="developer">
+    <changeSet id="users-001-create-users-table" author="developer">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="books"/>
+                <tableExists tableName="users"/>
             </not>
         </preConditions>
-        <createTable tableName="books">
+        
+        <createTable tableName="users">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="title" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="author" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="isbn" type="VARCHAR(17)">
+            <column name="username" type="VARCHAR(50)">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="description" type="TEXT"/>
-            <column name="price" type="DECIMAL(10,2)">
+            <column name="email" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="stock_quantity" type="INT">
+            <column name="first_name" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
-            <column name="category" type="VARCHAR(100)">
+            <column name="last_name" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
-            <column name="publisher" type="VARCHAR(100)"/>
-            <column name="publication_year" type="INT"/>
-            <column name="language" type="VARCHAR(50)" defaultValue="English"/>
-            <column name="pages" type="INT"/>
-            <column name="image_url" type="VARCHAR(500)"/>
+            <column name="phone" type="VARCHAR(20)"/>
+            <column name="date_of_birth" type="DATE"/>
+            <column name="address" type="TEXT"/>
+            <column name="role" type="VARCHAR(20)" defaultValue="USER">
+                <constraints nullable="false"/>
+            </column>
             <column name="active" type="BOOLEAN" defaultValueBoolean="true">
                 <constraints nullable="false"/>
             </column>
+            <column name="email_verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_login" type="TIMESTAMP"/>
             <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -54,7 +56,7 @@
         </createTable>
 
         <rollback>
-            <dropTable tableName="books"/>
+            <dropTable tableName="users"/>
         </rollback>
     </changeSet>
 

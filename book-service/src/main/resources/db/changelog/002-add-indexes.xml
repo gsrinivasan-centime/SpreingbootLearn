@@ -6,33 +6,58 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
     <changeSet id="002-add-indexes" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="books"/>
+        </preConditions>
+        
         <createIndex tableName="books" indexName="idx_book_title">
             <column name="title"/>
         </createIndex>
+        <modifySql dbms="mysql">
+            <replace replace="CREATE INDEX" with="CREATE INDEX IF NOT EXISTS"/>
+        </modifySql>
 
         <createIndex tableName="books" indexName="idx_book_author">
             <column name="author"/>
         </createIndex>
+        <modifySql dbms="mysql">
+            <replace replace="CREATE INDEX" with="CREATE INDEX IF NOT EXISTS"/>
+        </modifySql>
 
         <createIndex tableName="books" indexName="idx_book_category">
             <column name="category"/>
         </createIndex>
+        <modifySql dbms="mysql">
+            <replace replace="CREATE INDEX" with="CREATE INDEX IF NOT EXISTS"/>
+        </modifySql>
 
         <createIndex tableName="books" indexName="idx_book_isbn">
             <column name="isbn"/>
         </createIndex>
+        <modifySql dbms="mysql">
+            <replace replace="CREATE INDEX" with="CREATE INDEX IF NOT EXISTS"/>
+        </modifySql>
 
         <createIndex tableName="books" indexName="idx_book_active">
             <column name="active"/>
         </createIndex>
+        <modifySql dbms="mysql">
+            <replace replace="CREATE INDEX" with="CREATE INDEX IF NOT EXISTS"/>
+        </modifySql>
 
         <createIndex tableName="books" indexName="idx_book_created_at">
             <column name="created_at"/>
         </createIndex>
+        <modifySql dbms="mysql">
+            <replace replace="CREATE INDEX" with="CREATE INDEX IF NOT EXISTS"/>
+        </modifySql>
 
         <createIndex tableName="books" indexName="idx_book_price">
             <column name="price"/>
         </createIndex>
+        <modifySql dbms="mysql">
+            <replace replace="CREATE INDEX" with="CREATE INDEX IF NOT EXISTS"/>
+        </modifySql>
 
         <rollback>
             <dropIndex tableName="books" indexName="idx_book_title"/>

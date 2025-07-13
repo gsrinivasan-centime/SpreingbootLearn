@@ -5,10 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class BookDto {
+public class BookDto implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Long id;
 

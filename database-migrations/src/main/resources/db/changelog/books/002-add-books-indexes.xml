@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="books-002-add-books-indexes" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="books"/>
+        </preConditions>
+        
+        <!-- Title index for search functionality -->
+        <createIndex tableName="books" indexName="idx_books_title">
+            <column name="title"/>
+        </createIndex>
+        
+        <!-- Author index for filtering -->
+        <createIndex tableName="books" indexName="idx_books_author">
+            <column name="author"/>
+        </createIndex>
+        
+        <!-- Category index for filtering -->
+        <createIndex tableName="books" indexName="idx_books_category">
+            <column name="category"/>
+        </createIndex>
+        
+        <!-- ISBN index (already unique, but explicit index for lookups) -->
+        <createIndex tableName="books" indexName="idx_books_isbn">
+            <column name="isbn"/>
+        </createIndex>
+        
+        <!-- Active status index for filtering active books -->
+        <createIndex tableName="books" indexName="idx_books_active">
+            <column name="active"/>
+        </createIndex>
+        
+        <!-- Created date index for sorting -->
+        <createIndex tableName="books" indexName="idx_books_created_at">
+            <column name="created_at"/>
+        </createIndex>
+        
+        <!-- Price index for range queries -->
+        <createIndex tableName="books" indexName="idx_books_price">
+            <column name="price"/>
+        </createIndex>
+        
+        <!-- Composite index for common queries (active + category) -->
+        <createIndex tableName="books" indexName="idx_books_active_category">
+            <column name="active"/>
+            <column name="category"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="books" indexName="idx_books_title"/>
+            <dropIndex tableName="books" indexName="idx_books_author"/>
+            <dropIndex tableName="books" indexName="idx_books_category"/>
+            <dropIndex tableName="books" indexName="idx_books_isbn"/>
+            <dropIndex tableName="books" indexName="idx_books_active"/>
+            <dropIndex tableName="books" indexName="idx_books_created_at"/>
+            <dropIndex tableName="books" indexName="idx_books_price"/>
+            <dropIndex tableName="books" indexName="idx_books_active_category"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

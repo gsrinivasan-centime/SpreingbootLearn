@@ -8,6 +8,10 @@
     <changeSet id="002-add-indexes" author="developer">
         <comment>Add indexes for better query performance</comment>
         
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="users"/>
+        </preConditions>
+        
         <!-- Index on email for faster email lookups -->
         <createIndex tableName="users" indexName="idx_users_email">
             <column name="email"/>

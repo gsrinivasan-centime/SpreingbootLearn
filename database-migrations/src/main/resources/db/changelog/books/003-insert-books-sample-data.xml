@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="books-003-insert-books-sample-data" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="books"/>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM books</sqlCheck>
+        </preConditions>
+
+        <insert tableName="books">
+            <column name="title" value="The Great Gatsby"/>
+            <column name="author" value="F. Scott Fitzgerald"/>
+            <column name="isbn" value="978-0-7432-7356-5"/>
+            <column name="description" value="A classic American novel set in the Jazz Age"/>
+            <column name="price" value="12.99"/>
+            <column name="stock_quantity" value="50"/>
+            <column name="category" value="Classic Literature"/>
+            <column name="publisher" value="Scribner"/>
+            <column name="publication_year" value="1925"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="180"/>
+            <column name="active" value="true"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="To Kill a Mockingbird"/>
+            <column name="author" value="Harper Lee"/>
+            <column name="isbn" value="978-0-06-112008-4"/>
+            <column name="description" value="A story of racial injustice and childhood in the American South"/>
+            <column name="price" value="14.99"/>
+            <column name="stock_quantity" value="75"/>
+            <column name="category" value="Classic Literature"/>
+            <column name="publisher" value="HarperCollins"/>
+            <column name="publication_year" value="1960"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="376"/>
+            <column name="active" value="true"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="1984"/>
+            <column name="author" value="George Orwell"/>
+            <column name="isbn" value="978-0-452-28423-4"/>
+            <column name="description" value="A dystopian social science fiction novel"/>
+            <column name="price" value="13.99"/>
+            <column name="stock_quantity" value="100"/>
+            <column name="category" value="Science Fiction"/>
+            <column name="publisher" value="Penguin Books"/>
+            <column name="publication_year" value="1949"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="328"/>
+            <column name="active" value="true"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="Pride and Prejudice"/>
+            <column name="author" value="Jane Austen"/>
+            <column name="isbn" value="978-0-14-143951-8"/>
+            <column name="description" value="A romantic novel of manners"/>
+            <column name="price" value="11.99"/>
+            <column name="stock_quantity" value="60"/>
+            <column name="category" value="Romance"/>
+            <column name="publisher" value="Penguin Classics"/>
+            <column name="publication_year" value="1813"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="432"/>
+            <column name="active" value="true"/>
+        </insert>
+
+        <insert tableName="books">
+            <column name="title" value="The Catcher in the Rye"/>
+            <column name="author" value="J.D. Salinger"/>
+            <column name="isbn" value="978-0-316-76948-0"/>
+            <column name="description" value="A coming-of-age story in New York"/>
+            <column name="price" value="15.99"/>
+            <column name="stock_quantity" value="40"/>
+            <column name="category" value="Coming of Age"/>
+            <column name="publisher" value="Little, Brown and Company"/>
+            <column name="publication_year" value="1951"/>
+            <column name="language" value="English"/>
+            <column name="pages" value="234"/>
+            <column name="active" value="true"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="books">
+                <where>isbn IN ('978-0-7432-7356-5', '978-0-06-112008-4', '978-0-452-28423-4', '978-0-14-143951-8', '978-0-316-76948-0')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

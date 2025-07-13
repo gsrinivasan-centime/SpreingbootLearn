@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="users-002-add-users-indexes" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="users"/>
+        </preConditions>
+        
+        <!-- Username index (already unique, but explicit index for lookups) -->
+        <createIndex tableName="users" indexName="idx_users_username">
+            <column name="username"/>
+        </createIndex>
+        
+        <!-- Email index (already unique, but explicit index for lookups) -->
+        <createIndex tableName="users" indexName="idx_users_email">
+            <column name="email"/>
+        </createIndex>
+        
+        <!-- Role index for filtering -->
+        <createIndex tableName="users" indexName="idx_users_role">
+            <column name="role"/>
+        </createIndex>
+        
+        <!-- Active status index for filtering active users -->
+        <createIndex tableName="users" indexName="idx_users_active">
+            <column name="active"/>
+        </createIndex>
+        
+        <!-- Created date index for sorting -->
+        <createIndex tableName="users" indexName="idx_users_created_at">
+            <column name="created_at"/>
+        </createIndex>
+        
+        <!-- Last login index for analytics -->
+        <createIndex tableName="users" indexName="idx_users_last_login">
+            <column name="last_login"/>
+        </createIndex>
+        
+        <!-- Composite index for common queries (active + role) -->
+        <createIndex tableName="users" indexName="idx_users_active_role">
+            <column name="active"/>
+            <column name="role"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="users" indexName="idx_users_username"/>
+            <dropIndex tableName="users" indexName="idx_users_email"/>
+            <dropIndex tableName="users" indexName="idx_users_role"/>
+            <dropIndex tableName="users" indexName="idx_users_active"/>
+            <dropIndex tableName="users" indexName="idx_users_created_at"/>
+            <dropIndex tableName="users" indexName="idx_users_last_login"/>
+            <dropIndex tableName="users" indexName="idx_users_active_role"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
