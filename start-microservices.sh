@@ -19,8 +19,14 @@ echo "🚀 Starting Spring Boot Microservices in Docker..."
 
 # Build the microservices JARs first
 echo "🔨 Building microservices..."
+
+# Clean target directories first to avoid permission issues
+echo "🧹 Cleaning up previous builds..."
+rm -rf book-service/target
+rm -rf user-service/target
+
 echo "📚 Building Book Service..."
-cd book-service && mvn clean package -DskipTests
+cd book-service && mvn package -DskipTests
 if [ $? -ne 0 ]; then
     echo "❌ Failed to build book-service"
     exit 1
@@ -28,7 +34,7 @@ fi
 cd ..
 
 echo "👥 Building User Service..."
-cd user-service && mvn clean package -DskipTests  
+cd user-service && mvn package -DskipTests  
 if [ $? -ne 0 ]; then
     echo "❌ Failed to build user-service"
     exit 1

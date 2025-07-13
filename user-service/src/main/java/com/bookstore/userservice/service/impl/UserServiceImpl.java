@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    @Cacheable(value = "users", key = "#id")
+    @Cacheable(value = "users", key = "#id", unless = "#result == null")
     @Transactional(readOnly = true)
     public UserDto getUserById(Long id) {
         log.info("Fetching user by ID: {}", id);
@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    @Cacheable(value = "users", key = "#email")
+    @Cacheable(value = "users", key = "#email", unless = "#result == null")
     @Transactional(readOnly = true)
     public UserDto getUserByEmail(String email) {
         log.info("Fetching user by email: {}", email);
